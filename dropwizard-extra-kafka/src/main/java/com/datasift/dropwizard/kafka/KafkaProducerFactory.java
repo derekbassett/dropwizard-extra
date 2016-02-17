@@ -5,19 +5,20 @@ import com.datasift.dropwizard.kafka.producer.KafkaProducer;
 import com.datasift.dropwizard.kafka.producer.ManagedProducer;
 import com.datasift.dropwizard.kafka.producer.ProxyProducer;
 import com.datasift.dropwizard.kafka.util.Compression;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import io.dropwizard.util.Size;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.validation.MinDuration;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.Partitioner;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.Encoder;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -35,7 +36,7 @@ import java.util.Properties;
  */
 public class KafkaProducerFactory extends KafkaClientFactory {
 
-    static final int DEFAULT_BROKER_PORT = 6667;
+    static final int DEFAULT_BROKER_PORT = 9092;
 
     /**
      * The acknowledgements to wait for before considering a message as sent.
@@ -58,11 +59,11 @@ public class KafkaProducerFactory extends KafkaClientFactory {
     protected ImmutableSet<InetSocketAddress> brokers = ImmutableSet.of();
 
     @NotNull
-    protected Acknowledgement acknowledgement = Acknowledgement.ALL;
+    protected Acknowledgement acknowledgement = Acknowledgement.NEVER;
 
     @NotNull
     @MinDuration(0)
-    protected Duration requestTimeout = Duration.seconds(1);
+    protected Duration requestTimeout = Duration.seconds(10);
 
     protected boolean async = false;
 
@@ -93,12 +94,13 @@ public class KafkaProducerFactory extends KafkaClientFactory {
     @Min(1)
     protected int asyncBufferSize = 10000;
 
-    @NotNull
+    @MinDuration(0)
+    @UnwrapValidatedValue
     protected Optional<Duration> asyncBlockTimeout = Optional.absent();
 
     protected Size sendBufferSize = Size.kilobytes(100);
 
-    @NotNull
+    @UnwrapValidatedValue
     protected Optional<String> clientIdSuffix = Optional.absent();
 
     @JsonProperty("brokers")

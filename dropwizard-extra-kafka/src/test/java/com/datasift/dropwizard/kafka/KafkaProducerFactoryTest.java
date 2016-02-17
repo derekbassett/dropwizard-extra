@@ -3,19 +3,17 @@ package com.datasift.dropwizard.kafka;
 import com.google.common.io.Resources;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.jackson.Jackson;
-
+import io.dropwizard.validation.BaseValidator;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.DefaultEncoder;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
 import java.io.File;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
 import static com.datasift.dropwizard.kafka.KafkaProducerFactory.DEFAULT_BROKER_PORT;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * TODO: Document
@@ -27,8 +25,7 @@ public class KafkaProducerFactoryTest {
 
     @Before
     public void setup() throws Exception {
-        final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        factory = new ConfigurationFactory<>(KafkaProducerFactory.class, validator, Jackson.newObjectMapper(), "dw")
+        factory = new ConfigurationFactory<>(KafkaProducerFactory.class, BaseValidator.newValidator(), Jackson.newObjectMapper(), "dw")
                 .build(new File(Resources.getResource("yaml/producer.yaml").toURI()));
         config = KafkaProducerFactory.toProducerConfig(factory, DefaultEncoder.class, null, null, "test");
     }
