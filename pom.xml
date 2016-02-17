@@ -109,6 +109,17 @@
     </site>
   </distributionManagement>
 -->
+  <distributionManagement>
+    <repository>
+      <id>thistech-repo</id>
+      <url>https://nexus.eng.thistech.com/nexus/content/repositories/thistech/</url>
+    </repository>
+    <snapshotRepository>
+      <id>thistech-snapshots</id>
+      <url>https://nexus.eng.thistech.com/nexus/content/repositories/thistech-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <modules>
     <module>dropwizard-extra-curator</module>
     <module>dropwizard-extra-hbase</module>
