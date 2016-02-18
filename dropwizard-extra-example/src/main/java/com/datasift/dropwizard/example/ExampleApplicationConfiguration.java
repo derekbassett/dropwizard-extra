@@ -1,5 +1,6 @@
 package com.datasift.dropwizard.example;
 
+import com.datasift.dropwizard.kafka.KafkaConsumerFactory;
 import com.datasift.dropwizard.kafka.KafkaProducerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
@@ -24,5 +25,19 @@ public class ExampleApplicationConfiguration extends Configuration {
     @JsonProperty("kafka-producer")
     public void setKafkaProducerFactory(KafkaProducerFactory kafkaProducerFactory) {
         this.kafkaProducerFactory = kafkaProducerFactory;
+    }
+
+    @NotNull
+    @Valid
+    private KafkaConsumerFactory kafkaConsumerFactory = new KafkaConsumerFactory();
+
+    @JsonProperty("kafka-consumer")
+    public KafkaConsumerFactory getKafkaConsumerFactory() {
+        return kafkaConsumerFactory;
+    }
+
+    @JsonProperty("kafka-consumer")
+    public void setKafkaConsumerFactory(KafkaConsumerFactory kafkaConsumerFactory) {
+        this.kafkaConsumerFactory = kafkaConsumerFactory;
     }
 }

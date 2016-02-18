@@ -46,7 +46,7 @@ This module allows you to use Kafka inside your application
 		
 
 ## Kafka configuration in config.yaml
-* First the kafka producers configuration have several fields
+* Kafka producers configuration have several fields
 
 		kafka-producer:
 			broker: 
@@ -71,3 +71,29 @@ async           | false      | Is the message sent asynchrously on a background 
 compression     | none       | Compression codec for all data generated.  Valid values are none, gzip and snappy
 maxRetries	   | 3          | How many times we will retry a failed send request.
 retryBackOff    | 100 ms     | How long the producer waits before trying to see if a new leader has been elected.
+
+* Kafka consumers configuration have several fields as well
+
+        kafka-consumer:
+        	zookeeper:
+        	  hosts:
+        	    - localhost
+        	  port: 2181
+        	group: test
+        	partitions:
+        		foo: 1
+        		bar: 2
+        		
+        		
+Name        | Default | Description
+------------|---------|------------
+zookeeper   |         | Configuration parameters for zookeeper
+group       | (none)  | The consumer group used for this consumer
+partitions  | (none)  | A list of topics to partitions to consume   
+
+* The list of zookeeper parameters
+
+Name 	 | Default| Description
+--------|--------|--------------------
+host    | (none) | A list of hosts zookeeper is located on
+port    | 2181   | The port to look for zookeeper

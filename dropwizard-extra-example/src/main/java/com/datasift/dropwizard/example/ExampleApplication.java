@@ -5,6 +5,7 @@ import com.datasift.dropwizard.kafka.producer.KafkaProducer;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import kafka.serializer.StringDecoder;
 import kafka.serializer.StringEncoder;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -31,6 +32,10 @@ public class ExampleApplication extends Application<ExampleApplicationConfigurat
                 bind(kafkaProducer).to(new TypeLiteral<KafkaProducer<String, String>>(){});
             }
         });
-        environment.jersey().register(HelloWorldResource.class);
+        //final KafkaConsumer configuration
+        HelloWorldResource helloWorldResource = new HelloWorldResource();
+        // Create a consumer
+        configuration.getKafkaConsumerFactory().processWith(new StringDecoder(null), new StringDecoder(null), helloWorldResource).build(environment, "consumer");
+        environment.jersey().register(helloWorldResource);
     }
 }

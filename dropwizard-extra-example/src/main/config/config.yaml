@@ -4,6 +4,14 @@ kafka-producer:
   brokers:
   - 127.0.0.1:9092
 
-# kafka-consumer:
-
+kafka-consumer:
+  zookeeper:
+    hosts:
+      - localhost
+    port: 2181
+  group: test
+  partitions:
+    hello-world: 1
+  rebalanceRetries: 5
+  retryResetDelay: 3 seconds
 
