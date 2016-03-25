@@ -18,6 +18,8 @@ modules:
   working with [HBase](http://hbase.apache.org)
   * [dropwizard-extra-kafka](http://github.com/datasift/dropwizard-extra/tree/develop/dropwizard-extra-kafka) for 
   working with [Apache Kafka](http://incubator.apache.org/kafka).
+  * [dropwizard-extra-kafka8](http://github.com/datasift/dropwizard-extra/tree/develop/dropwizard-extra-kafka8) for 
+  working with [Apache Kafka](http://incubator.apache.org/kafka).
   * [dropwizard-extra-scala](http://github.com/datasift/dropwizard-extra/tree/develop/dropwizard-extra-scala) provides 
   Scala integrations for Dropwizard and a more idiomatic Scala API to the other Dropwizard Extra modules.
   * [dropwizard-extra-zookeeper](http://github.com/datasift/dropwizard-extra/tree/develop/dropwizard-extra-zookeeper)
@@ -40,7 +42,7 @@ so just add the module(s) you wish to use to your `pom.xml`:
     <dependency>
         <groupId>com.datasift.dropwizard</groupId>
         <artifactId>dropwizard-extra-core</artifactId>
-        <version>0.6.2-1</version>
+        <version>0.9.2-1</version>
     </dependency>
 </dependencies>
 ```

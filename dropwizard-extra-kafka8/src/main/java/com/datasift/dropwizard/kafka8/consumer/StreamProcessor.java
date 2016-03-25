@@ -1,4 +1,4 @@
-package com.datasift.dropwizard.kafka.consumer;
+package com.datasift.dropwizard.kafka8.consumer;
 
 import kafka.message.MessageAndMetadata;
 

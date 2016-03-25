@@ -1,6 +1,8 @@
-package com.datasift.dropwizard.kafka.consumer;
+package com.datasift.dropwizard.kafka8.consumer;
 
-import com.datasift.dropwizard.kafka.KafkaConsumerFactory;
+import com.datasift.dropwizard.kafka8.KafkaConsumerFactory;
+import com.datasift.dropwizard.kafka8.consumer.StreamProcessor;
+import com.datasift.dropwizard.kafka8.consumer.SynchronousConsumer;
 import com.google.common.io.Resources;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.jackson.Jackson;

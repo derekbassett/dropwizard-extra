@@ -1,5 +1,6 @@
-package com.datasift.dropwizard.kafka.util;
+package com.datasift.dropwizard.kafka8.util;
 
+import com.datasift.dropwizard.kafka8.util.Compression;
 import kafka.message.*;
 import org.junit.Test;
 

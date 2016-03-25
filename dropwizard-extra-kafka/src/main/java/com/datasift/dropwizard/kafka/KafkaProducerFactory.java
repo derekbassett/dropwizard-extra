@@ -1,42 +1,30 @@
 package com.datasift.dropwizard.kafka;
 
 import com.datasift.dropwizard.kafka.producer.InstrumentedProducer;
-import com.datasift.dropwizard.kafka.producer.KafkaProducer;
 import com.datasift.dropwizard.kafka.producer.ManagedProducer;
 import com.datasift.dropwizard.kafka.producer.ProxyProducer;
-import com.datasift.dropwizard.kafka.util.Compression;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
-import io.dropwizard.util.Size;
 import io.dropwizard.validation.MinDuration;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.Partitioner;
-import kafka.producer.ProducerConfig;
-import kafka.serializer.Encoder;
-import org.hibernate.validator.constraints.NotEmpty;
-import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
+import io.dropwizard.validation.OneOf;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Partitioner;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.Serializer;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.net.InetSocketAddress;
 import java.util.Properties;
 
 /**
  * Configuration for the Kafka producer.
  * <p>
- * By default, the producer will be synchronous, blocking the calling thread until the message has
- * been sent.
- * <p>
- * To use an asynchronous producer, set {@link KafkaProducerFactory#async} with the desired
- * properties.
+ * By default, the producer will be asynchronous
+ *
  */
 public class KafkaProducerFactory extends KafkaClientFactory {
-
-    static final int DEFAULT_BROKER_PORT = 9092;
 
     /**
      * The acknowledgements to wait for before considering a message as sent.
@@ -55,23 +43,16 @@ public class KafkaProducerFactory extends KafkaClientFactory {
         }
     }
 
-    @NotEmpty
-    protected ImmutableSet<InetSocketAddress> brokers = ImmutableSet.of();
-
     @NotNull
-    protected Acknowledgement acknowledgement = Acknowledgement.NEVER;
+    protected Acknowledgement acknowledgement = Acknowledgement.LEADER;
 
     @NotNull
     @MinDuration(0)
     protected Duration requestTimeout = Duration.seconds(10);
 
-    protected boolean async = false;
-
     @NotNull
-    protected Compression compression = Compression.parse("none");
-
-    @NotNull
-    protected ImmutableSet<String> compressedTopics = ImmutableSet.of();
+    @OneOf({"none","gzip","snappy","lz4"})
+    protected String compression = "none";
 
     @Min(0)
     protected int maxRetries = 3;
@@ -82,36 +63,21 @@ public class KafkaProducerFactory extends KafkaClientFactory {
 
     @NotNull
     @MinDuration(0)
-    protected Duration metadataRefreshInterval = Duration.minutes(10);
+    protected Duration metadataMaxAge = Duration.milliseconds(300000);
 
     @NotNull
     @MinDuration(0)
-    protected Duration asyncBatchInterval = Duration.milliseconds(500);
+    protected Duration asyncBatchInterval = Duration.milliseconds(0);
+
+    @NotNull
+    @MinDuration(0)
+    protected Duration maxBlock = Duration.milliseconds(60000);
 
     @Min(1)
     protected int asyncBatchSize = 200;
 
     @Min(1)
-    protected int asyncBufferSize = 10000;
-
-    @MinDuration(0)
-    @UnwrapValidatedValue
-    protected Optional<Duration> asyncBlockTimeout = Optional.absent();
-
-    protected Size sendBufferSize = Size.kilobytes(100);
-
-    @UnwrapValidatedValue
-    protected Optional<String> clientIdSuffix = Optional.absent();
-
-    @JsonProperty("brokers")
-    public ImmutableSet<InetSocketAddress> getBrokers() {
-        return brokers;
-    }
-
-    @JsonProperty("brokers")
-    public void setBrokers(final ImmutableSet<InetSocketAddress> brokers) {
-        this.brokers = brokers;
-    }
+    protected int asyncBufferSize = 1048576;
 
     @JsonProperty("acknowledgement")
     public Acknowledgement getAcknowledgement() {
@@ -133,34 +99,14 @@ public class KafkaProducerFactory extends KafkaClientFactory {
         this.requestTimeout = requestTimeout;
     }
 
-    @JsonProperty("async")
-    public boolean isAsync() {
-        return async;
-    }
-
-    @JsonProperty("async")
-    public void setAsync(final boolean async) {
-        this.async = async;
-    }
-
     @JsonProperty("compression")
-    public Compression getCompression() {
+    public String getCompression() {
         return compression;
     }
 
     @JsonProperty("compression")
-    public void setCompression(final Compression compression) {
+    public void setCompression(final String compression) {
         this.compression = compression;
-    }
-
-    @JsonProperty("compressedTopics")
-    public ImmutableSet<String> getCompressedTopics() {
-        return compressedTopics;
-    }
-
-    @JsonProperty("compressedTopics")
-    public void setCompressedTopics(final ImmutableSet<String> compressedTopics) {
-        this.compressedTopics = compressedTopics;
     }
 
     @JsonProperty("maxRetries")
@@ -183,14 +129,14 @@ public class KafkaProducerFactory extends KafkaClientFactory {
         this.retryBackOff = retryBackOff;
     }
 
-    @JsonProperty("metadataRefreshInterval")
-    public Duration getMetadataRefreshInterval() {
-        return metadataRefreshInterval;
+    @JsonProperty("metadataMaxAge")
+    public Duration getMetadataMaxAge() {
+        return metadataMaxAge;
     }
 
-    @JsonProperty("metadataRefreshInterval")
-    public void setMetadataRefreshInterval(final Duration metadataRefreshInterval) {
-        this.metadataRefreshInterval = metadataRefreshInterval;
+    @JsonProperty("metadataMaxAge")
+    public void setMetadataMaxAge(final Duration metadataMaxAge) {
+        this.metadataMaxAge = metadataMaxAge;
     }
 
     @JsonProperty("asyncBatchInterval")
@@ -201,6 +147,16 @@ public class KafkaProducerFactory extends KafkaClientFactory {
     @JsonProperty("asyncBatchInterval")
     public void setAsyncBatchInterval(final Duration asyncBatchInterval) {
         this.asyncBatchInterval = asyncBatchInterval;
+    }
+
+    @JsonProperty("maxBlock")
+    public Duration getMaxBlock() {
+        return maxBlock;
+    }
+
+    @JsonProperty("maxBlock")
+    public void setMaxBlock(Duration maxBlock) {
+        this.maxBlock = maxBlock;
     }
 
     @JsonProperty("asyncBatchSize")
@@ -223,55 +179,25 @@ public class KafkaProducerFactory extends KafkaClientFactory {
         this.asyncBufferSize = asyncBufferSize;
     }
 
-    @JsonProperty("asyncBlockTimeout")
-    public Optional<Duration> getAsyncBlockTimeout() {
-        return asyncBlockTimeout;
-    }
-
-    @JsonProperty("asyncBlockTimeout")
-    public void setAsyncBlockTimeout(final Optional<Duration> asyncBlockTimeout) {
-        this.asyncBlockTimeout = asyncBlockTimeout;
-    }
-
-    @JsonProperty("sendBufferSize")
-    public Size getSendBufferSize() {
-        return sendBufferSize;
-    }
-
-    @JsonProperty("sendBufferSize")
-    public void setSendBufferSize(final Size sendBufferSize) {
-        this.sendBufferSize = sendBufferSize;
-    }
-
-    @JsonProperty("clientIdSuffix")
-    public Optional<String> getClientIdSuffix() {
-        return clientIdSuffix;
-    }
-
-    @JsonProperty("clientIdSuffix")
-    public void setClientIdSuffix(final Optional<String> clientIdSuffix) {
-        this.clientIdSuffix = clientIdSuffix;
-    }
-    
-    public <V> KafkaProducer<?, V> build(final Class<? extends Encoder<V>> messageEncoder,
+    public <V> Producer<?, V> build(final Class<? extends Serializer<V>> valueSerializer,
                                     final Environment environment,
                                     final String name) {
-        return build(messageEncoder, null, environment, name);
+        return build(null, valueSerializer, environment, name);
     }
 
-    public <K, V> KafkaProducer<K, V> build(final Class<? extends Encoder<K>> keyEncoder,
-                                       final Class<? extends Encoder<V>> messageEncoder,
+    public <K, V> Producer<K, V> build(final Class<? extends Serializer<K>> keySerializer,
+                                       final Class<? extends Serializer<V>> valueSerializer,
                                        final Environment environment,
                                        final String name) {
-        return build(keyEncoder, messageEncoder, null, environment, name);
+        return build(keySerializer, valueSerializer, null, environment, name);
     }
 
-    public <K, V> KafkaProducer<K, V> build(final Class<? extends Encoder<K>> keyEncoder,
-                                       final Class<? extends Encoder<V>> messageEncoder,
+    public <K, V> Producer<K, V> build(final Class<? extends Serializer<K>> keySerializer,
+                                       final Class<? extends Serializer<V>> valueSerializer,
                                        final Class<? extends Partitioner> partitioner,
                                        final Environment environment,
                                        final String name) {
-        final KafkaProducer<K, V> producer = build(keyEncoder, messageEncoder, partitioner, name);
+        final Producer<K, V> producer = build(keySerializer, valueSerializer, partitioner, name);
         environment.lifecycle().manage(new ManagedProducer(producer));
         return new InstrumentedProducer<>(
                 producer,
@@ -279,76 +205,63 @@ public class KafkaProducerFactory extends KafkaClientFactory {
                 name);
     }
 
-    public <K, V> KafkaProducer<K, V> build(final Class<? extends Encoder<K>> keyEncoder,
-                                       final Class<? extends Encoder<V>> messageEncoder,
+    public <K, V> Producer<K, V> build(final Class<? extends Serializer<K>> keySerializer,
+                                       final Class<? extends Serializer<V>> valueSerializer,
                                        final Class<? extends Partitioner> partitioner,
                                        final String name) {
-        return new ProxyProducer<>(new Producer<K, V>(
-                toProducerConfig(this, messageEncoder, keyEncoder, partitioner, name)));
+        final KafkaProducer<K, V> producer = new KafkaProducer<>(
+                toProperties(this, valueSerializer, keySerializer, partitioner, name));
+        return new ProxyProducer<>(producer);
     }
 
-    static <K, V> ProducerConfig toProducerConfig(final KafkaProducerFactory factory,
-                                                  final Class<? extends Encoder<V>> messageEncoder,
-                                                  final Class<? extends Encoder<K>> keyEncoder,
-                                                  final Class<? extends Partitioner> partitioner,
-                                                  final String name) {
+    static <K, V> Properties toProperties(final KafkaProducerFactory factory,
+                                          final Class<? extends Serializer<V>> valueSerializer,
+                                          final Class<? extends Serializer<K>> keySerializer,
+                                          final Class<? extends Partitioner> partitioner,
+                                          final String name) {
         final Properties properties = new Properties();
 
-        final StringBuilder sb = new StringBuilder(10*factory.getBrokers().size());
-        for (final InetSocketAddress addr : factory.getBrokers()) {
-            final int port = addr.getPort() == 0 ? DEFAULT_BROKER_PORT : addr.getPort();
-            sb.append(addr.getHostString()).append(':').append(port).append(',');
-        }
         properties.setProperty(
-                "metadata.broker.list", sb.substring(0, sb.length() - 1));
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, factory.buildBrokerProperty());
         properties.setProperty(
-                "request.required.acks", Integer.toString(factory.getAcknowledgement().getValue()));
+                ProducerConfig.ACKS_CONFIG, Integer.toString(factory.getAcknowledgement().getValue()));
         properties.setProperty(
-                "request.timeout.ms", Long.toString(factory.getRequestTimeout().toMilliseconds()));
-        properties.setProperty("producer.type", factory.isAsync() ? "async" : "sync");
-        properties.setProperty("serializer.class", messageEncoder.getCanonicalName());
+                ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, Long.toString(factory.getRequestTimeout().toMilliseconds()));
 
-        if (keyEncoder != null) {
-            properties.setProperty("key.serializer.class", keyEncoder.getCanonicalName());
+        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer.getCanonicalName());
+
+        if (keySerializer != null) {
+            properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer.getCanonicalName());
         }
 
         if (partitioner != null) {
-            properties.setProperty("partitioner.class", partitioner.getCanonicalName());
+            properties.setProperty(ProducerConfig.PARTITIONER_CLASS_CONFIG, partitioner.getCanonicalName());
         }
 
-        properties.setProperty("compression.codec", factory.getCompression().getCodec().name());
-
-        if (!factory.getCompressedTopics().isEmpty()) {
-            properties.setProperty(
-                    "compressed.topics", Joiner.on(',').join(factory.getCompressedTopics()));
-        }
+        properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, factory.getCompression());
 
         properties.setProperty(
-                "message.send.max.retries", Integer.toString(factory.getMaxRetries()));
+                ProducerConfig.RETRIES_CONFIG, Integer.toString(factory.getMaxRetries()));
         properties.setProperty(
-                "retry.backoff.ms", Long.toString(factory.getRetryBackOff().toMilliseconds()));
+                ProducerConfig.RETRY_BACKOFF_MS_CONFIG, Long.toString(factory.getRetryBackOff().toMilliseconds()));
         properties.setProperty(
-                "topic.metadata.refresh.interval.ms",
-                Long.toString(factory.getMetadataRefreshInterval().toMilliseconds()));
+                ProducerConfig.METADATA_MAX_AGE_CONFIG,
+                Long.toString(factory.getMetadataMaxAge().toMilliseconds()));
+
         properties.setProperty(
-                "queue.buffering.max.ms",
+                ProducerConfig.LINGER_MS_CONFIG,
                 Long.toString(factory.getAsyncBatchInterval().toMilliseconds()));
         properties.setProperty(
-                "queue.buffering.max.messages", Integer.toString(factory.getAsyncBufferSize()));
-        properties.setProperty(
-                "queue.enqueue.timeout.ms",
-                Long.toString(factory.getAsyncBlockTimeout()
-                        .or(Duration.milliseconds(-1)).toMilliseconds()));
-        properties.setProperty("batch.num.messages", Integer.toString(factory.getAsyncBatchSize()));
-        properties.setProperty(
-                "send.buffer.bytes", Long.toString(factory.getSendBufferSize().toBytes()));
+                ProducerConfig.MAX_BLOCK_MS_CONFIG,
+                Long.toString(factory.getMaxBlock().toMilliseconds()));
 
-        final StringBuilder clientId = new StringBuilder(name);
-        if (factory.getClientIdSuffix().isPresent()) {
-            clientId.append('-').append(factory.getClientIdSuffix().get());
-        }
-        properties.setProperty("client.id", clientId.toString());
+        properties.setProperty(
+                ProducerConfig.MAX_REQUEST_SIZE_CONFIG, Integer.toString(factory.getAsyncBufferSize()));
 
-        return new ProducerConfig(properties);
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(factory.getAsyncBatchSize()));
+
+        properties.setProperty(ProducerConfig.CLIENT_ID_CONFIG, factory.buildClientIdProperty(name));
+
+        return properties;
     }
 }

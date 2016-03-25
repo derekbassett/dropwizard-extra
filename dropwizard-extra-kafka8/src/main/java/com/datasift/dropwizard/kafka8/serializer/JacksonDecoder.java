@@ -1,4 +1,4 @@
-package com.datasift.dropwizard.kafka.serializer;
+package com.datasift.dropwizard.kafka8.serializer;
 
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParseException;

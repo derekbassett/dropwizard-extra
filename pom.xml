@@ -123,6 +123,7 @@
   <modules>
     <module>dropwizard-extra-curator</module>
     <module>dropwizard-extra-hbase</module>
+    <module>dropwizard-extra-kafka8</module>
     <module>dropwizard-extra-kafka</module>
     <module>dropwizard-extra-zookeeper</module>
     <module>dropwizard-extra-util</module>
@@ -172,6 +173,12 @@
         <version>${dropwizard.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>2.3.0</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -200,6 +207,11 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

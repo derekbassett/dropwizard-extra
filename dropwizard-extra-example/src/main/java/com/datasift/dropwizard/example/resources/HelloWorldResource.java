@@ -1,7 +1,7 @@
 package com.datasift.dropwizard.example.resources;
 
-import com.datasift.dropwizard.kafka.consumer.StreamProcessor;
-import com.datasift.dropwizard.kafka.producer.KafkaProducer;
+import com.datasift.dropwizard.kafka8.consumer.StreamProcessor;
+import com.datasift.dropwizard.kafka8.producer.KafkaProducer;
 import kafka.message.MessageAndMetadata;
 
 import javax.ws.rs.FormParam;

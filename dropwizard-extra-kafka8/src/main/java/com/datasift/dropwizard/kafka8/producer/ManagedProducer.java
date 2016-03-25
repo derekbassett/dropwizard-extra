@@ -1,16 +1,16 @@
-package com.datasift.dropwizard.kafka.producer;
+package com.datasift.dropwizard.kafka8.producer;
 
 import io.dropwizard.lifecycle.Managed;
-import org.apache.kafka.clients.producer.Producer;
+import kafka.javaapi.producer.Producer;
 
 /**
  * Manages a Kafka {@link Producer} as part of the application lifecycle..
  */
 public class ManagedProducer implements Managed {
 
-    private final Producer<?, ?> producer;
+    private final KafkaProducer<?, ?> producer;
 
-    public ManagedProducer(final Producer<?, ?> producer) {
+    public ManagedProducer(final KafkaProducer<?, ?> producer) {
         this.producer = producer;
     }
 

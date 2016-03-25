@@ -1,4 +1,4 @@
-package com.datasift.dropwizard.kafka.consumer;
+package com.datasift.dropwizard.kafka8.consumer;
 
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.lifecycle.ServerLifecycleListener;
@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link KafkaConsumer} that processes messages synchronously using an {@link ExecutorService}.

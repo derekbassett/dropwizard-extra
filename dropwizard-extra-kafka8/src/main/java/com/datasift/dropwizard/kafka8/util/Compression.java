@@ -1,4 +1,4 @@
-package com.datasift.dropwizard.kafka.util;
+package com.datasift.dropwizard.kafka8.util;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import kafka.message.*;

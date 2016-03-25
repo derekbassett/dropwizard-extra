@@ -1,11 +1,8 @@
-zookeeper:
-  hosts:
-    - localhost
-    - fake.remotehost
-  port: 2181
+brokers:
+  - localhost:9092
+  - fake.remotehost:9092
 group: test
-partitions:
-  foo: 1
-  bar: 2
-rebalanceRetries: 5
+topics:
+  - foo
+  - bar
 retryResetDelay: 3 seconds
