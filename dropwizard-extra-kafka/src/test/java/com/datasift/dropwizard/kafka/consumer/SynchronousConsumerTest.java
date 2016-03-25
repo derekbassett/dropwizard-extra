@@ -5,6 +5,7 @@ import com.google.common.io.Resources;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.jackson.Jackson;
 import io.dropwizard.util.Duration;
+import io.dropwizard.validation.BaseValidator;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.serializer.Decoder;
@@ -23,12 +24,10 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.validation.Validation;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +49,7 @@ public class SynchronousConsumerTest {
     public void setup() throws Exception {
         configuration = new ConfigurationFactory<>(
                 KafkaConsumerFactory.class,
-                Validation.buildDefaultValidatorFactory().getValidator(),
+                BaseValidator.newValidator(),
                 Jackson.newObjectMapper(),
                 "dw").build(new File(Resources.getResource("yaml/consumer.yaml").toURI()));
     }

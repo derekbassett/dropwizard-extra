@@ -4,7 +4,6 @@ import com.datasift.dropwizard.kafka.consumer.StreamProcessor;
 import com.datasift.dropwizard.kafka.producer.KafkaProducer;
 import kafka.message.MessageAndMetadata;
 
-import javax.inject.Inject;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -23,8 +22,8 @@ public class HelloWorldResource implements StreamProcessor<String, String> {
 
     private BlockingQueue<String> queue = new ArrayBlockingQueue<>(1);
 
-    @Inject
-    public void setKafkaProducer(KafkaProducer<String, String> kafkaProducer) {
+
+    public HelloWorldResource(KafkaProducer<String, String> kafkaProducer) {
         this.kafkaProducer = kafkaProducer;
     }
 

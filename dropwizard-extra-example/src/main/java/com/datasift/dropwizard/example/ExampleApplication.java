@@ -7,8 +7,6 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import kafka.serializer.StringDecoder;
 import kafka.serializer.StringEncoder;
-import org.glassfish.hk2.api.TypeLiteral;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 /**
  * Example application using Dropwizard Kafka and Dropwizard Zookeeper.
@@ -26,14 +24,7 @@ public class ExampleApplication extends Application<ExampleApplicationConfigurat
     @Override
     public void run(ExampleApplicationConfiguration configuration, Environment environment) throws Exception {
         final KafkaProducer<String, String> kafkaProducer = configuration.getKafkaProducerFactory().build(StringEncoder.class, StringEncoder.class, environment, "hello-world");
-        environment.jersey().register(new AbstractBinder() {
-            @Override
-            protected void configure() {
-                bind(kafkaProducer).to(new TypeLiteral<KafkaProducer<String, String>>(){});
-            }
-        });
-        //final KafkaConsumer configuration
-        HelloWorldResource helloWorldResource = new HelloWorldResource();
+        final HelloWorldResource helloWorldResource = new HelloWorldResource(kafkaProducer);
         // Create a consumer
         configuration.getKafkaConsumerFactory().processWith(new StringDecoder(null), new StringDecoder(null), helloWorldResource).build(environment, "consumer");
         environment.jersey().register(helloWorldResource);
