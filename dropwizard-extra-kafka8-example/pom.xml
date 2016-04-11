@@ -9,12 +9,12 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>dropwizard-extra-example</artifactId>
+  <artifactId>dropwizard-extra-kafka8-example</artifactId>
 
-  <name>Dropwizard Extra Kafka</name>
-  <url>http://datasift.github.com/dropwizard-extra/dropwizard-extra-example</url>
+  <name>Dropwizard Extra Example for Kafka 8</name>
+  <url>http://datasift.github.com/dropwizard-extra/dropwizard-extra-kafka8-example</url>
   <description>
-    Dropwizard integration extra example.
+    Dropwizard integration extra example for Kafka 8.
   </description>
 
   <dependencies>

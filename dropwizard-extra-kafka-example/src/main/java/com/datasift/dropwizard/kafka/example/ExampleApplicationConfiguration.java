@@ -1,7 +1,7 @@
-package com.datasift.dropwizard.example;
+package com.datasift.dropwizard.kafka.example;
 
-import com.datasift.dropwizard.kafka8.KafkaConsumerFactory;
-import com.datasift.dropwizard.kafka8.KafkaProducerFactory;
+import com.datasift.dropwizard.kafka.KafkaConsumerFactory;
+import com.datasift.dropwizard.kafka.KafkaProducerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
 

@@ -1,7 +1,7 @@
 package com.datasift.dropwizard.kafka.consumer;
 
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 
 /**
  * Processes an {@link Iterable} of messages of type {@code T}.
@@ -17,5 +17,5 @@ public interface ConsumerRecordProcessor<K, V> {
      *
      * @param records the records of messages to process.
      */
-    void process(Iterable<ConsumerRecord<K, V>> records);
+    void process(ConsumerRecords<K, V> records);
 }

@@ -449,14 +449,13 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
         this.startDelay = startDelay;
     }
 
-    protected <K, V> KafkaConsumer buildUnmanagedConsumer(Class<? extends Deserializer<K>> keyDeserializer,
-                                                          Class<? extends Deserializer<V>> valueDeserializer,
-                                                          String name) {
-        return new KafkaConsumer(
-                toProperties(this, valueDeserializer, keyDeserializer, name));
+    public <V> Consumer<byte[], V> build(final Deserializer<V> valueDeserializer,
+                                         final Environment environment,
+                                         final String name) {
+        return build(new ByteArrayDeserializer(), valueDeserializer, environment, name);
     }
 
-    public <V> Consumer<?, V> build(final Class<? extends Deserializer<V>> valueDeserializer,
+    public <V> Consumer<byte[], V> build(final Class<? extends Deserializer<V>> valueDeserializer,
                                     final Environment environment,
                                     final String name) {
         return build(ByteArrayDeserializer.class, valueDeserializer, environment, name);
@@ -466,12 +465,42 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
                                        final Class<? extends Deserializer<V>> valueDeserializer,
                                        final Environment environment,
                                        final String name) {
-        final KafkaConsumer<K, V> kafka = buildUnmanagedConsumer(keyDeserializer, valueDeserializer, name);
+        final Consumer<K, V> kafka = buildUnmanaged(keyDeserializer, valueDeserializer, name);
         final ManagedConsumer<K, V> managed = new ManagedConsumer<>(kafka);
 
         environment.lifecycle().manage(managed);
 
         return new InstrumentedConsumer<>(managed, environment.metrics(), name);
+    }
+
+    public <K, V> Consumer<K, V> build(final Deserializer<K> keyDeserializer,
+                                       final Deserializer<V> valueDeserializer,
+                                       final Environment environment,
+                                       final String name) {
+        final Consumer<K, V> kafka = buildUnmanaged(keyDeserializer, valueDeserializer, name);
+        final ManagedConsumer<K, V> managed = new ManagedConsumer<>(kafka);
+
+        environment.lifecycle().manage(managed);
+
+        return new InstrumentedConsumer<>(managed, environment.metrics(), name);
+    }
+
+    protected <K, V> Consumer<K, V> buildUnmanaged(final Class<? extends Deserializer<K>> keyDeserializer,
+                                                   final Class<? extends Deserializer<V>> valueDeserializer,
+                                                   final String name) {
+        return buildUnmanaged(toProperties(this, valueDeserializer, keyDeserializer, name), null, null);
+    }
+
+    protected <K, V> Consumer<K, V> buildUnmanaged(final Deserializer<K> keyDeserializer,
+                                                   final Deserializer<V> valueDeserializer,
+                                                   final String name) {
+        return buildUnmanaged(toProperties(this, null, null, name), keyDeserializer, valueDeserializer);
+    }
+
+    protected <K, V> Consumer<K, V> buildUnmanaged(final Properties properties,
+                                                   final Deserializer<K> keyDeserializer,
+                                                   final Deserializer<V> valueDeserializer) {
+        return new KafkaConsumer(properties, keyDeserializer, valueDeserializer);
     }
 
     /**
@@ -502,6 +531,17 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
         return new PollingProcessorBuilder<>(ByteArrayDeserializer.class, deserializer, processor);
     }
 
+    public <V> PollingProcessorBuilder<byte[], V> processWith(final Deserializer<V> deserializer,
+                                                              final ConsumerRecordProcessor<byte[], V> processor) {
+        return new PollingProcessorBuilder<>(new ByteArrayDeserializer(), deserializer, processor);
+    }
+
+    public <K, V> PollingProcessorBuilder<K, V> processWith(final Deserializer<K> keyDeserializer,
+                                                            final Deserializer<V> valueDeserializer,
+                                                            final ConsumerRecordProcessor<K, V> processor) {
+        return new PollingProcessorBuilder<K, V>(keyDeserializer, valueDeserializer, processor);
+    }
+
     public <K, V> PollingProcessorBuilder<K, V> processWith(final Class<? extends Deserializer<K>> keyDeserializer,
                                                             final Class<? extends Deserializer<V>> valueDeserializer,
                                                             final ConsumerRecordProcessor<K, V> processor) {
@@ -515,19 +555,43 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
      */
     public class PollingProcessorBuilder<K, V> {
 
-        private final Class<? extends Deserializer<K>> keyDeserializer;
-        private final Class<? extends Deserializer<V>> valueDeserializer;
+        private final Deserializer<K> keyDeserializer;
+        private final Deserializer<V> valueDeserializer;
+        private final Class<? extends Deserializer<K>> keyDeserializerClass;
+        private final Class<? extends Deserializer<V>> valueDeserializerClass;
         private final ConsumerRecordProcessor<K, V> processor;
         private boolean autoCommit = true;
         private int batchCount;
         private static final String DEFAULT_NAME = "kafka-consumer-default";
 
-        private PollingProcessorBuilder(final Class<? extends Deserializer<K>> keyDeserializer,
-                                        final Class<? extends Deserializer<V>> valueDeserializer,
+        private PollingProcessorBuilder(final Deserializer<K> keyDeserializer,
+                                        final Deserializer<V> valueDeserializer,
                                         final ConsumerRecordProcessor<K, V> processor) {
             this.keyDeserializer = keyDeserializer;
+            this.keyDeserializerClass = null;
             this.valueDeserializer = valueDeserializer;
+            this.valueDeserializerClass = null;
             this.processor = processor;
+        }
+
+        private PollingProcessorBuilder(final Class<? extends Deserializer<K>> keyDeserializerClass,
+                                        final Class<? extends Deserializer<V>> valueDeserializerClass,
+                                        final ConsumerRecordProcessor<K, V> processor) {
+            this.keyDeserializer = null;
+            this.keyDeserializerClass = keyDeserializerClass;
+            this.valueDeserializer = null;
+            this.valueDeserializerClass = valueDeserializerClass;
+            this.processor = processor;
+        }
+
+        public PollingProcessorBuilder<K, V> withAutoCommit(boolean autoCommit) {
+            this.autoCommit = autoCommit;
+            return this;
+        }
+
+        public PollingProcessorBuilder<K, V> withBatchCount(int batchCount) {
+            this.batchCount = batchCount;
+            return this;
         }
 
         /**
@@ -582,10 +646,16 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
          * @return a managed and configured {@link PollingProcessor}.
          */
         public PollingProcessor<K, V> build(final Environment environment,
-                                             final ScheduledExecutorService executor,
-                                             final String name) {
-            final Consumer<K, V> consumer = KafkaConsumerFactory.this.
-                    build(keyDeserializer, valueDeserializer, environment, name);
+                                            final ScheduledExecutorService executor,
+                                            final String name) {
+            Consumer<K, V> consumer = null;
+            if(keyDeserializerClass != null && valueDeserializerClass != null) {
+                consumer = KafkaConsumerFactory.this.
+                        build(keyDeserializerClass, valueDeserializerClass, environment, name);
+            } else {
+                consumer = KafkaConsumerFactory.this.
+                        build(keyDeserializer, valueDeserializer, environment, name);
+            }
             final PollingProcessor<K, V> processor = build(consumer, executor);
 
             // manage the consumer
@@ -637,7 +707,9 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
         if(keyDeserializer != null) {
             properties.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer.getCanonicalName());
         }
-        properties.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer.getCanonicalName());
+        if(valueDeserializer != null) {
+            properties.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer.getCanonicalName());
+        }
         properties.setProperty(FETCH_MIN_BYTES_CONFIG, String.valueOf(factory.getMinFetchSize().toBytes()));
         properties.setProperty(GROUP_ID_CONFIG, factory.getGroup());
         properties.setProperty(HEARTBEAT_INTERVAL_MS_CONFIG, String.valueOf(factory.getHeartbeatInterval().toMilliseconds()));

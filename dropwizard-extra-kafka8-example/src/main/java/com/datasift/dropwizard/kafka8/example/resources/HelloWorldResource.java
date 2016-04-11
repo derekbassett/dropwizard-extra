@@ -1,4 +1,4 @@
-package com.datasift.dropwizard.example.resources;
+package com.datasift.dropwizard.kafka8.example.resources;
 
 import com.datasift.dropwizard.kafka8.consumer.StreamProcessor;
 import com.datasift.dropwizard.kafka8.producer.KafkaProducer;

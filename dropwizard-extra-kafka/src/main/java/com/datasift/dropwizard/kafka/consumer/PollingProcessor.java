@@ -4,7 +4,6 @@ import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.lifecycle.ServerLifecycleListener;
 import io.dropwizard.util.Duration;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
@@ -192,25 +191,20 @@ public class PollingProcessor<K, V> implements RunnableProcessor, Managed, Serve
             try {
                 LOG.debug("Subscribing {} to topics {}", threadId, topics);
                 consumer.subscribe(topics);
+                int processed = 0;
                 while(isRunning()) {
                     try {
-                        int processed = 0;
                         ConsumerRecords<K, V> records = consumer.poll(timeout.toMilliseconds());
-                        for (ConsumerRecord<K, V> record : records) {
-                            if (LOG.isTraceEnabled()) {
-                                LOG.trace("offset = {}, key = {}, value = {}", record.offset(), record.key(), record.value());
-                            }
-                            try {
-                                processor.process(records);
-                            } catch (Exception e) {
-                                getExceptionHandler().handleException("Error during processing", e);
-                            }
-                            processed += 1;
-                            if (!isAutoCommitEnabled()) {
-                                if (processed >= getBatchCount()) {
-                                    consumer.commitSync();
-                                    processed = 0;
-                                }
+                        try {
+                            processor.process(records);
+                        } catch (Exception e) {
+                            getExceptionHandler().handleException("Error during processing", e);
+                        }
+                        processed += records.count();
+                        if (!isAutoCommitEnabled()) {
+                            if (processed >= getBatchCount()) {
+                                consumer.commitSync();
+                                processed = 0;
                             }
                         }
                     } catch (final Throwable e) {

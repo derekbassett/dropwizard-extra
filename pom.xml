@@ -127,7 +127,8 @@
     <module>dropwizard-extra-kafka</module>
     <module>dropwizard-extra-zookeeper</module>
     <module>dropwizard-extra-util</module>
-    <module>dropwizard-extra-example</module>
+    <module>dropwizard-extra-kafka8-example</module>
+    <module>dropwizard-extra-kafka-example</module>
   </modules>
 
   <dependencyManagement>

@@ -12,6 +12,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Partitioner;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
 
 import javax.validation.constraints.Min;
@@ -179,10 +180,23 @@ public class KafkaProducerFactory extends KafkaClientFactory {
         this.asyncBufferSize = asyncBufferSize;
     }
 
-    public <V> Producer<?, V> build(final Class<? extends Serializer<V>> valueSerializer,
-                                    final Environment environment,
-                                    final String name) {
-        return build(null, valueSerializer, environment, name);
+    public <V> Producer<byte[], V> build(final Serializer<V> valueSerializer,
+                                         final Environment environment,
+                                         final String name) {
+        return build(new ByteArraySerializer(), valueSerializer, environment, name);
+    }
+
+    public <V> Producer<byte[], V> build(final Class<? extends Serializer<V>> valueSerializer,
+                                         final Environment environment,
+                                         final String name) {
+        return build(ByteArraySerializer.class, valueSerializer, environment, name);
+    }
+
+    public <K, V> Producer<K, V> build(final Serializer<K> keySerializer,
+                                       final Serializer<V> valueSerializer,
+                                       final Environment environment,
+                                       final String name) {
+        return build(keySerializer, valueSerializer, null, environment, name);
     }
 
     public <K, V> Producer<K, V> build(final Class<? extends Serializer<K>> keySerializer,
@@ -190,6 +204,19 @@ public class KafkaProducerFactory extends KafkaClientFactory {
                                        final Environment environment,
                                        final String name) {
         return build(keySerializer, valueSerializer, null, environment, name);
+    }
+
+    public <K, V> Producer<K, V> build(final Serializer<K> keySerializer,
+                                       final Serializer<V> valueSerializer,
+                                       final Class<? extends Partitioner> partitioner,
+                                       final Environment environment,
+                                       final String name) {
+        final Producer<K, V> producer = build(keySerializer, valueSerializer, partitioner, name);
+        environment.lifecycle().manage(new ManagedProducer(producer));
+        return new InstrumentedProducer<>(
+                producer,
+                environment.metrics(),
+                name);
     }
 
     public <K, V> Producer<K, V> build(final Class<? extends Serializer<K>> keySerializer,
@@ -205,13 +232,41 @@ public class KafkaProducerFactory extends KafkaClientFactory {
                 name);
     }
 
+    public <K, V> Producer<K, V> build(final Serializer<K> keySerializer,
+                                       final Serializer<V> valueSerializer,
+                                       final Class<? extends Partitioner> partitioner,
+                                       final String name) {
+        final Producer<K, V> producer = buildUnmanaged(keySerializer, valueSerializer, partitioner, name);
+        return new ProxyProducer<>(producer);
+    }
+
     public <K, V> Producer<K, V> build(final Class<? extends Serializer<K>> keySerializer,
                                        final Class<? extends Serializer<V>> valueSerializer,
                                        final Class<? extends Partitioner> partitioner,
                                        final String name) {
-        final KafkaProducer<K, V> producer = new KafkaProducer<>(
-                toProperties(this, valueSerializer, keySerializer, partitioner, name));
+        final Producer<K, V> producer = buildUnmanaged(keySerializer, valueSerializer, partitioner, name);
         return new ProxyProducer<>(producer);
+    }
+
+    protected <K, V> Producer<K , V> buildUnmanaged(final Serializer<K> keySerializer,
+                                                    final Serializer<V> valueSerializer,
+                                                    final Class<? extends Partitioner> partitioner,
+                                                    final String name) {
+        return buildUnmanaged(toProperties(this, null, null, partitioner, name), keySerializer, valueSerializer);
+    }
+
+
+    protected <K, V> Producer<K , V> buildUnmanaged(final Class<? extends Serializer<K>> keySerializer,
+                                                    final Class<? extends Serializer<V>> valueSerializer,
+                                                    final Class<? extends Partitioner> partitioner,
+                                                    final String name) {
+        return buildUnmanaged(toProperties(this, valueSerializer, keySerializer, partitioner, name), null, null);
+    }
+
+    protected <K, V> Producer<K , V> buildUnmanaged(final Properties properties,
+                                                    final Serializer<K> keySerializer,
+                                                    final Serializer<V> valueSerializer) {
+        return new KafkaProducer<>(properties, keySerializer, valueSerializer);
     }
 
     static <K, V> Properties toProperties(final KafkaProducerFactory factory,
@@ -228,7 +283,9 @@ public class KafkaProducerFactory extends KafkaClientFactory {
         properties.setProperty(
                 ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, Long.toString(factory.getRequestTimeout().toMilliseconds()));
 
-        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer.getCanonicalName());
+        if (valueSerializer != null) {
+            properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer.getCanonicalName());
+        }
 
         if (keySerializer != null) {
             properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer.getCanonicalName());

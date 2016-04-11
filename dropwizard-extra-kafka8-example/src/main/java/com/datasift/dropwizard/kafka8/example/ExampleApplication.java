@@ -1,6 +1,6 @@
-package com.datasift.dropwizard.example;
+package com.datasift.dropwizard.kafka8.example;
 
-import com.datasift.dropwizard.example.resources.HelloWorldResource;
+import com.datasift.dropwizard.kafka8.example.resources.HelloWorldResource;
 import com.datasift.dropwizard.kafka8.producer.KafkaProducer;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;

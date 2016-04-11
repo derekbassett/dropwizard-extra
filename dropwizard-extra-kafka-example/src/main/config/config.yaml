@@ -1,0 +1,13 @@
+
+
+kafka-producer:
+  brokers:
+  - 127.0.0.1:9092
+
+kafka-consumer:
+  brokers:
+  - 127.0.0.1:9092
+  group: test
+  topics:
+  - hello-world
+

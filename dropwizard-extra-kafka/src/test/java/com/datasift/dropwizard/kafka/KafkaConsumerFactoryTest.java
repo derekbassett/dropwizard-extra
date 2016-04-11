@@ -14,7 +14,7 @@ import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.assertj.core.api.Assertions;
@@ -27,6 +27,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.hamcrest.Matchers.*;
@@ -39,7 +40,6 @@ import static org.mockito.Mockito.*;
  */
 public class KafkaConsumerFactoryTest {
 
-    private final KafkaConsumer kafkaConsumer = Mockito.mock(KafkaConsumer.class);
     private KafkaConsumerFactory factory = null;
     private TestKafkaConsumerFactory testKafkaConsumerFactory = null;
 
@@ -54,23 +54,27 @@ public class KafkaConsumerFactoryTest {
     private String metricName;
 
 
-    class TestKafkaConsumerFactory extends KafkaConsumerFactory {
+    class TestKafkaConsumerFactory<K, V> extends KafkaConsumerFactory {
+        public Properties properties;
+        public Deserializer<K> keyDeserializer;
+        public Deserializer<V> valueDeserializer;
+        public Consumer<K, V> consumer = Mockito.mock(Consumer.class);
 
         public TestKafkaConsumerFactory() {
             super();
         }
 
         @Override
-        protected <K, V> KafkaConsumer buildUnmanagedConsumer(Class<? extends Deserializer<K>> keyDeserializer,
-                                                              Class<? extends Deserializer<V>> valueDeserializer,
-                                                              String name) {
-            return kafkaConsumer;
+        protected <K, V> Consumer buildUnmanaged(final Properties properties,
+                                                 final Deserializer<K> keyDeserializer,
+                                                 final Deserializer<V> valueDeserializer) {
+            return consumer;
         }
     }
 
     @Before
     public void setup() throws Exception {
-        Mockito.reset(kafkaConsumer, environment, lifecycleEnvironment, metricRegistry, meter, healthCheckRegistry);
+        Mockito.reset(environment, lifecycleEnvironment, metricRegistry, meter, healthCheckRegistry);
 
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         factory = new ConfigurationFactory<>(KafkaConsumerFactory.class, validator, Jackson.newObjectMapper(), "dw")
@@ -92,7 +96,6 @@ public class KafkaConsumerFactoryTest {
     @Test
     public void test_build_value_and_key_deserializer() throws Exception {
         String name = "name";
-
 
         Assertions.assertThat(
                 testKafkaConsumerFactory.build(ByteArrayDeserializer.class, ByteArrayDeserializer.class, environment, name))
