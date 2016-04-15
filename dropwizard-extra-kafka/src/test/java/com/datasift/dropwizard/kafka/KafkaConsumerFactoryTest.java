@@ -32,7 +32,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 /**
@@ -101,7 +100,6 @@ public class KafkaConsumerFactoryTest {
                 testKafkaConsumerFactory.build(ByteArrayDeserializer.class, ByteArrayDeserializer.class, environment, name))
                 .isNotNull();
 
-        verify(lifecycleEnvironment).manage(isA(Managed.class));
         verify(metricRegistry).meter(metricName);
     }
 
@@ -113,7 +111,6 @@ public class KafkaConsumerFactoryTest {
                 testKafkaConsumerFactory.build(ByteArrayDeserializer.class, environment, name))
                 .isNotNull();
 
-        verify(lifecycleEnvironment).manage(isA(Managed.class));
         verify(metricRegistry).meter(metricName);
     }
 
@@ -130,8 +127,8 @@ public class KafkaConsumerFactoryTest {
 
         ArgumentCaptor<Managed> captor = ArgumentCaptor.forClass(Managed.class);
 
-        verify(lifecycleEnvironment, times(2)).manage(captor.capture());
-        assertThat(captor.getAllValues().size(), is(2));
+        verify(lifecycleEnvironment, times(1)).manage(captor.capture());
+        assertThat(captor.getAllValues().size(), is(1));
         Assertions.assertThat(captor.getAllValues()).contains(processor);
         verify(lifecycleEnvironment).addServerLifecycleListener(processor);
     }

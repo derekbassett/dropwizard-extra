@@ -3,7 +3,6 @@ package com.datasift.dropwizard.kafka;
 import com.datasift.dropwizard.kafka.consumer.ConsumerRecordProcessor;
 import com.datasift.dropwizard.kafka.consumer.InstrumentedConsumer;
 import com.datasift.dropwizard.kafka.consumer.KafkaConsumerHealthCheck;
-import com.datasift.dropwizard.kafka.consumer.ManagedConsumer;
 import com.datasift.dropwizard.kafka.consumer.PollingProcessor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
@@ -12,6 +11,7 @@ import io.dropwizard.util.Duration;
 import io.dropwizard.util.Size;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -35,21 +35,6 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
  */
 public class KafkaConsumerFactory extends KafkaClientFactory {
 
-    // TODO: REMOVE with OffsetResetStrategy
-    /**
-     * A description of the initial offset to consume from a partition when no committed offset
-     * exists.
-     * <p>
-     * <dl>
-     *     <dt>EARLIEST</dt><dd>Use the earliest available offset. In effect,
-     *                          consuming the entire log.</dd>
-     *     <dt>LATEST</dt><dd>Use the latest available offset. In effect,
-     *                         tailing the end of the log.</dd>
-     *     <dt>NONE</dt><dd>throw exception to the consumer if no previous offset is found</dd>
-     * </dl>
-     */
-    public enum InitialOffset { EARLIEST, LATEST, NONE }
-
     @NotEmpty
     protected String group = "";
 
@@ -72,7 +57,7 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
     protected Size maxPartitionFetch = Size.megabytes(1);
 
     @NotNull
-    protected InitialOffset initialOffset = InitialOffset.LATEST;
+    protected OffsetResetStrategy autoOffsetReset = OffsetResetStrategy.LATEST;
 
     @NotNull
     protected Duration connectionsMaxIdle = Duration.milliseconds(540000);
@@ -264,23 +249,23 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
      *
      * @return the initial offset to consume from in a partition.
      *
-     * @see InitialOffset
+     * @see OffsetResetStrategy
      */
     @JsonProperty
-    public InitialOffset getInitialOffset() {
-        return initialOffset;
+    public OffsetResetStrategy getAutoOffsetReset() {
+        return autoOffsetReset;
     }
 
     /**
      * Sets the setting for the initial offset to consume from when no committed offset exists.
      *
-     * @param initialOffset the initial offset to consume from in a partition.
+     * @param autoOffsetReset the initial offset to consume from in a partition.
      *
-     * @see InitialOffset
+     * @see OffsetResetStrategy
      */
     @JsonProperty
-    public void setInitialOffset(final InitialOffset initialOffset) {
-        this.initialOffset = initialOffset;
+    public void setAutoOffsetReset(final OffsetResetStrategy autoOffsetReset) {
+        this.autoOffsetReset = autoOffsetReset;
     }
 
     @JsonProperty
@@ -466,11 +451,7 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
                                        final Environment environment,
                                        final String name) {
         final Consumer<K, V> kafka = buildUnmanaged(keyDeserializer, valueDeserializer, name);
-        final ManagedConsumer<K, V> managed = new ManagedConsumer<>(kafka);
-
-        environment.lifecycle().manage(managed);
-
-        return new InstrumentedConsumer<>(managed, environment.metrics(), name);
+        return new InstrumentedConsumer<>(kafka, environment.metrics(), name);
     }
 
     public <K, V> Consumer<K, V> build(final Deserializer<K> keyDeserializer,
@@ -478,11 +459,7 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
                                        final Environment environment,
                                        final String name) {
         final Consumer<K, V> kafka = buildUnmanaged(keyDeserializer, valueDeserializer, name);
-        final ManagedConsumer<K, V> managed = new ManagedConsumer<>(kafka);
-
-        environment.lifecycle().manage(managed);
-
-        return new InstrumentedConsumer<>(managed, environment.metrics(), name);
+        return new InstrumentedConsumer<>(kafka, environment.metrics(), name);
     }
 
     protected <K, V> Consumer<K, V> buildUnmanaged(final Class<? extends Deserializer<K>> keyDeserializer,
@@ -718,7 +695,7 @@ public class KafkaConsumerFactory extends KafkaClientFactory {
 
         // TODO: ADD SSL
 
-        properties.setProperty(AUTO_OFFSET_RESET_CONFIG, String.valueOf(factory.getInitialOffset()).toLowerCase());
+        properties.setProperty(AUTO_OFFSET_RESET_CONFIG, String.valueOf(factory.getAutoOffsetReset()).toLowerCase());
         properties.setProperty(CONNECTIONS_MAX_IDLE_MS_CONFIG, String.valueOf(factory.getConnectionsMaxIdle().toMilliseconds()));
         properties.setProperty(ENABLE_AUTO_COMMIT_CONFIG, String.valueOf(factory.getAutoCommit()));
         properties.setProperty(AUTO_COMMIT_INTERVAL_MS_CONFIG, String.valueOf(factory.getAutoCommitInterval().toMilliseconds()));
