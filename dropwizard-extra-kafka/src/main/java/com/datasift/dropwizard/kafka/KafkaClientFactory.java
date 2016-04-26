@@ -3,11 +3,9 @@ package com.datasift.dropwizard.kafka;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import io.dropwizard.util.Duration;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
-import javax.validation.constraints.NotNull;
 import java.net.InetSocketAddress;
 
 /**
@@ -18,33 +16,10 @@ abstract public class KafkaClientFactory {
 
     static final int DEFAULT_BROKER_PORT = 9092;
 
-    @NotNull
-    protected Duration socketTimeout = Duration.seconds(30);
-
     @NotEmpty
     protected ImmutableSet<InetSocketAddress> brokers = ImmutableSet.of();
     @UnwrapValidatedValue
     protected Optional<String> clientIdSuffix = Optional.absent();
-
-    /**
-     * Returns the time to wait on a network socket before timing out requests.
-     *
-     * @return the time to wait on a network socket before timing out requests.
-     */
-    @JsonProperty
-    public Duration getSocketTimeout() {
-        return socketTimeout;
-    }
-
-    /**
-     * Sets the time to wait on a network socket before timing out requests.
-     *
-     * @param socketTimeout the time to wait on a network socket before timing out requests.
-     */
-    @JsonProperty
-    public void setSocketTimeout(final Duration socketTimeout) {
-        this.socketTimeout = socketTimeout;
-    }
 
     @JsonProperty("brokers")
     public ImmutableSet<InetSocketAddress> getBrokers() {

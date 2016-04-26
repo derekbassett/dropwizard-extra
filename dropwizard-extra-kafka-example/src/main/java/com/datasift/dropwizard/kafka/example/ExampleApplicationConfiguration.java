@@ -2,6 +2,7 @@ package com.datasift.dropwizard.kafka.example;
 
 import com.datasift.dropwizard.kafka.KafkaConsumerFactory;
 import com.datasift.dropwizard.kafka.KafkaProducerFactory;
+import com.datasift.dropwizard.kafka.PollingProcessorFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
 
@@ -17,6 +18,14 @@ public class ExampleApplicationConfiguration extends Configuration {
     @Valid
     private KafkaProducerFactory kafkaProducerFactory = new KafkaProducerFactory();
 
+    @NotNull
+    @Valid
+    private KafkaConsumerFactory kafkaConsumerFactory = new KafkaConsumerFactory();
+
+    @NotNull
+    @Valid
+    private PollingProcessorFactory pollingProcessorFactory = new PollingProcessorFactory();
+
     @JsonProperty("kafka-producer")
     public KafkaProducerFactory getKafkaProducerFactory() {
         return kafkaProducerFactory;
@@ -27,10 +36,6 @@ public class ExampleApplicationConfiguration extends Configuration {
         this.kafkaProducerFactory = kafkaProducerFactory;
     }
 
-    @NotNull
-    @Valid
-    private KafkaConsumerFactory kafkaConsumerFactory = new KafkaConsumerFactory();
-
     @JsonProperty("kafka-consumer")
     public KafkaConsumerFactory getKafkaConsumerFactory() {
         return kafkaConsumerFactory;
@@ -39,5 +44,13 @@ public class ExampleApplicationConfiguration extends Configuration {
     @JsonProperty("kafka-consumer")
     public void setKafkaConsumerFactory(KafkaConsumerFactory kafkaConsumerFactory) {
         this.kafkaConsumerFactory = kafkaConsumerFactory;
+    }
+
+    @JsonProperty("polling-processor")
+    public PollingProcessorFactory getPollingProcessorFactory() { return pollingProcessorFactory; }
+
+    @JsonProperty("polling-processor")
+    public void setPollingProcessorFactory(PollingProcessorFactory pollingProcessorFactory) {
+        this.pollingProcessorFactory = pollingProcessorFactory;
     }
 }

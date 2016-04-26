@@ -6,7 +6,9 @@ import com.datasift.dropwizard.kafka.producer.ProxyProducer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
+import io.dropwizard.util.Size;
 import io.dropwizard.validation.MinDuration;
+import io.dropwizard.validation.MinSize;
 import io.dropwizard.validation.OneOf;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Partitioner;
@@ -74,11 +76,11 @@ public class KafkaProducerFactory extends KafkaClientFactory {
     @MinDuration(0)
     protected Duration maxBlock = Duration.milliseconds(60000);
 
-    @Min(1)
-    protected int asyncBatchSize = 200;
+    @MinSize(1)
+    protected Size maxRequestSize = Size.megabytes(1);
 
-    @Min(1)
-    protected int asyncBufferSize = 1048576;
+    @MinSize(1)
+    protected Size batchSize = Size.kilobytes(16);
 
     @JsonProperty("acknowledgement")
     public Acknowledgement getAcknowledgement() {
@@ -160,24 +162,24 @@ public class KafkaProducerFactory extends KafkaClientFactory {
         this.maxBlock = maxBlock;
     }
 
-    @JsonProperty("asyncBatchSize")
-    public int getAsyncBatchSize() {
-        return asyncBatchSize;
+    @JsonProperty("maxRequestSize")
+    public Size getMaxRequestSize() {
+        return maxRequestSize;
     }
 
-    @JsonProperty("asyncBatchSize")
-    public void setAsyncBatchSize(final int asyncBatchSize) {
-        this.asyncBatchSize = asyncBatchSize;
+    @JsonProperty("maxRequestSize")
+    public void setMaxRequestSize(final Size maxRequestSize) {
+        this.maxRequestSize = maxRequestSize;
     }
 
-    @JsonProperty("asyncBufferSize")
-    public int getAsyncBufferSize() {
-        return asyncBufferSize;
+    @JsonProperty("batchSize")
+    public Size getBatchSize() {
+        return batchSize;
     }
 
-    @JsonProperty("asyncBufferSize")
-    public void setAsyncBufferSize(final int asyncBufferSize) {
-        this.asyncBufferSize = asyncBufferSize;
+    @JsonProperty("batchSize")
+    public void setBatchSize(final Size batchSize) {
+        this.batchSize = batchSize;
     }
 
     public <V> Producer<byte[], V> build(final Serializer<V> valueSerializer,
@@ -313,9 +315,9 @@ public class KafkaProducerFactory extends KafkaClientFactory {
                 Long.toString(factory.getMaxBlock().toMilliseconds()));
 
         properties.setProperty(
-                ProducerConfig.MAX_REQUEST_SIZE_CONFIG, Integer.toString(factory.getAsyncBufferSize()));
+                ProducerConfig.MAX_REQUEST_SIZE_CONFIG, Long.toString(factory.getMaxRequestSize().toBytes()));
 
-        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(factory.getAsyncBatchSize()));
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Long.toString(factory.getBatchSize().toBytes()));
 
         properties.setProperty(ProducerConfig.CLIENT_ID_CONFIG, factory.buildClientIdProperty(name));
 

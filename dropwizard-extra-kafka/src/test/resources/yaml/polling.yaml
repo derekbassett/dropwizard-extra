@@ -1,0 +1,7 @@
+topics:
+  - foo
+  - bar
+pollTimeout: 1 ms
+autoCommit: true
+shutdownOnFatal: true
+shutdownGracePeriod: 5 seconds

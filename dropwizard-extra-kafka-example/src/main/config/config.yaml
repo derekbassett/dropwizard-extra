@@ -8,6 +8,7 @@ kafka-consumer:
   brokers:
   - 127.0.0.1:9092
   group: test
+
+polling-processor:
   topics:
   - hello-world
-

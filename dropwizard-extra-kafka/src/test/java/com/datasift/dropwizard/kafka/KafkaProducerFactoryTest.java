@@ -102,4 +102,6 @@ public class KafkaProducerFactoryTest {
 
         Mockito.verify(lifecycle).manage(isA(Managed.class));
     }
+
+
 }

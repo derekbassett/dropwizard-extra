@@ -2,7 +2,3 @@ brokers:
   - localhost:9092
   - fake.remotehost:9092
 group: test
-topics:
-  - foo
-  - bar
-retryResetDelay: 3 seconds

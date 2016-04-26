@@ -7,6 +7,7 @@ import com.datasift.dropwizard.kafka.serializer.JacksonSerializer;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -34,7 +35,9 @@ public class ExampleApplication extends Application<ExampleApplicationConfigurat
         JacksonDeserializer<HelloWorld> valueDeserializer = new JacksonDeserializer<>(environment.getObjectMapper(), HelloWorld.class);
 
         // Create a consumer
-        configuration.getKafkaConsumerFactory().processWith(new StringDeserializer(), valueDeserializer, helloWorldResource).build(environment, "consumer");
+        // helloWorldResource
+        final Consumer<String, HelloWorld> consumer = configuration.getKafkaConsumerFactory().build(environment, valueDeserializer, new StringDeserializer(), "consumer");
+        configuration.getPollingProcessorFactory().build(environment, consumer, helloWorldResource, "polling");
         environment.jersey().register(helloWorldResource);
     }
 }
