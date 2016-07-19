@@ -42,7 +42,7 @@ so just add the module(s) you wish to use to your `pom.xml`:
     <dependency>
         <groupId>com.datasift.dropwizard</groupId>
         <artifactId>dropwizard-extra-core</artifactId>
-        <version>0.9.2-1</version>
+        <version>0.9.2-2-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```

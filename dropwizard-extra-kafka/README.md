@@ -7,7 +7,7 @@ This module allows you to use Kafka inside your application
 		<dependency>
 			<group>com.datasift.dropwizard</group>
 			<artifact>dropwizard-extra-kafka</artifact>
-			<version>0.9.2-1</version>
+			<version>0.9.2-2-SNAPSHOT</version>
 		</dependency>
 
 
