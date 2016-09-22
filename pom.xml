@@ -111,6 +111,7 @@
     </site>
   </distributionManagement>
 -->
+  <!-- TODO: REMOVE IF WE EVER MERGE BACK -->
   <scm>
     <developerConnection>scm:git:git@bitbucket.org:thistech/dropwizard-extra.git</developerConnection>
     <tag>HEAD</tag>
@@ -125,6 +126,7 @@
       <url>https://nexus.eng.thistech.com/nexus/content/repositories/thistech-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
+  <!-- TODO: REMOVE IF WE EVER MERGE BACK -->
 
   <modules>
     <module>dropwizard-extra-curator</module>
@@ -261,6 +263,16 @@
       </plugins>
     </pluginManagement>
     <plugins>
+      <!-- TODO: REMOVE IF WE EVER MERGE BACK -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.1</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <!-- TODO: REMOVE IF WE EVER MERGE BACK -->
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
