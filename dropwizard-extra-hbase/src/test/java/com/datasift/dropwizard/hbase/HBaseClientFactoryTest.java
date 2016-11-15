@@ -1,8 +1,8 @@
 package com.datasift.dropwizard.hbase;
 
-import io.dropwizard.jackson.Jackson;
 import com.google.common.io.Resources;
-import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.YamlConfigurationFactory;
+import io.dropwizard.jackson.Jackson;
 import io.dropwizard.util.Duration;
 import io.dropwizard.util.Size;
 import org.junit.Before;
@@ -12,7 +12,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import java.io.File;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -25,7 +25,7 @@ public class HBaseClientFactoryTest {
     @Before
     public void setUp() throws Exception {
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        factory = new ConfigurationFactory<>(HBaseClientFactory.class, validator, Jackson.newObjectMapper(), "dw")
+        factory = new YamlConfigurationFactory<>(HBaseClientFactory.class, validator, Jackson.newObjectMapper(), "dw")
                 .build(new File(Resources.getResource("yaml/hbase.yml").getFile()));
     }
 

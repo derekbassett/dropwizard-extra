@@ -1,9 +1,9 @@
 package com.datasift.dropwizard.curator;
 
-import io.dropwizard.configuration.ConfigurationFactory;
-import io.dropwizard.jackson.Jackson;
 import com.datasift.dropwizard.zookeeper.ZooKeeperFactory;
 import com.google.common.io.Resources;
+import io.dropwizard.configuration.YamlConfigurationFactory;
+import io.dropwizard.jackson.Jackson;
 import org.apache.curator.framework.api.CompressionProvider;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.junit.Before;
@@ -13,7 +13,8 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import java.io.File;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /** Tests {@link CuratorConfiguration} */
@@ -24,7 +25,7 @@ public class CuratorFactoryTest {
     @Before
     public void setup() throws Exception {
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        factory = new ConfigurationFactory<>(CuratorFactory.class, validator, Jackson.newObjectMapper(), "dw")
+        factory = new YamlConfigurationFactory<>(CuratorFactory.class, validator, Jackson.newObjectMapper(), "dw")
                 .build(new File(Resources.getResource("yaml/curator.yaml").toURI()));
     }
 

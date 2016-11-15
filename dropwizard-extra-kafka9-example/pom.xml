@@ -9,18 +9,23 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>dropwizard-extra-util</artifactId>
+  <artifactId>dropwizard-extra-kafka9-example</artifactId>
 
-  <name>Dropwizard Extra Utilities</name>
-  <url>http://datasift.github.com/dropwizard-extra/dropwizard-extra-util</url>
+  <name>Dropwizard Extra Example for Kafka 9</name>
+  <url>http://datasift.github.com/dropwizard-extra/dropwizard-extra-kafka-example</url>
   <description>
-    Some useful additions to Dropwizard that have no external dependencies.
+    Dropwizard integration extra example for Kafka 8.
   </description>
 
   <dependencies>
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>dropwizard-extra-kafka9</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

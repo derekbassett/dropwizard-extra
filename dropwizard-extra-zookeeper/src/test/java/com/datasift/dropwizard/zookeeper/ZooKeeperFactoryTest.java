@@ -1,8 +1,8 @@
 package com.datasift.dropwizard.zookeeper;
 
-import io.dropwizard.jackson.Jackson;
 import com.google.common.io.Resources;
-import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.YamlConfigurationFactory;
+import io.dropwizard.jackson.Jackson;
 import io.dropwizard.util.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,9 +11,12 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import java.io.File;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItemInArray;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests {@link ZooKeeperConfiguration}.
@@ -25,7 +28,7 @@ public class ZooKeeperFactoryTest {
     @Before
     public void setup() throws Exception {
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        config = new ConfigurationFactory<>(ZooKeeperFactory.class, validator, Jackson.newObjectMapper(), "dw")
+        config = new YamlConfigurationFactory<>(ZooKeeperFactory.class, validator, Jackson.newObjectMapper(), "dw")
                 .build(new File(Resources.getResource("yaml/zookeeper.yaml").toURI()));
     }
 

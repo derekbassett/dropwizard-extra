@@ -1,8 +1,7 @@
 package com.datasift.dropwizard.kafka8;
 
-import com.datasift.dropwizard.kafka8.KafkaProducerFactory;
 import com.google.common.io.Resources;
-import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.YamlConfigurationFactory;
 import io.dropwizard.jackson.Jackson;
 import io.dropwizard.validation.BaseValidator;
 import kafka.producer.ProducerConfig;
@@ -26,7 +25,7 @@ public class KafkaProducerFactoryTest {
 
     @Before
     public void setup() throws Exception {
-        factory = new ConfigurationFactory<>(KafkaProducerFactory.class, BaseValidator.newValidator(), Jackson.newObjectMapper(), "dw")
+        factory = new YamlConfigurationFactory<>(KafkaProducerFactory.class, BaseValidator.newValidator(), Jackson.newObjectMapper(), "dw")
                 .build(new File(Resources.getResource("yaml/producer.yaml").toURI()));
         config = KafkaProducerFactory.toProducerConfig(factory, DefaultEncoder.class, null, null, "test");
     }

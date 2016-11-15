@@ -1,10 +1,9 @@
 package com.datasift.dropwizard.kafka8;
 
-import com.datasift.dropwizard.kafka8.KafkaConsumerFactory;
-import io.dropwizard.jackson.Jackson;
 import com.datasift.dropwizard.zookeeper.ZooKeeperFactory;
 import com.google.common.io.Resources;
-import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.YamlConfigurationFactory;
+import io.dropwizard.jackson.Jackson;
 import io.dropwizard.util.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +12,11 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import java.io.File;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -26,7 +29,7 @@ public class KafkaConsumerFactoryTest {
     @Before
     public void setup() throws Exception {
         final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        factory = new ConfigurationFactory<>(KafkaConsumerFactory.class, validator, Jackson.newObjectMapper(), "dw")
+        factory = new YamlConfigurationFactory<>(KafkaConsumerFactory.class, validator, Jackson.newObjectMapper(), "dw")
                 .build(new File(Resources.getResource("yaml/consumer.yaml").toURI()));
     }
 
