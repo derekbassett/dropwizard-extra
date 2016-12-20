@@ -1,4 +1,4 @@
 brokers:
-  - localhost:9092
-  - fake.remotehost:9092
+  - invalid1:9092
+  - invalid2:9092
 group: test

@@ -9,6 +9,7 @@ import org.junit.Test;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.io.File;
+import java.net.InetSocketAddress;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,6 +32,13 @@ public class KafkaConsumerFactoryIntegrationTest {
     @Test
     public void testGroup() {
         assertThat(factory.getGroup()).describedAs("group is correctly configured").isEqualTo("test");
+    }
+
+    @Test
+    public void testBrokers() {
+        InetSocketAddress central = InetSocketAddress.createUnresolved("invalid1",9092);
+        InetSocketAddress east = InetSocketAddress.createUnresolved("invalid2", 9092);
+        assertThat(factory.getBrokers()).describedAs("brokers is correctly configured").contains(central, east);
     }
 
 }
